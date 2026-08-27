@@ -270,4 +270,4 @@ except Exception as e:
     st.error(f"⚠️ Error fetching live data: {e}")
 
 time.sleep(30)
-st.rerun()run()
+st.rerun()

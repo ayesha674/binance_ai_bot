@@ -19,10 +19,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Deep Mobile Responsive & Touch-Friendly CSS UI
+# Mobile Responsive & Touch-Friendly CSS UI
 st.markdown("""
     <style>
-    /* Global Padding Reduction for Mobile */
     @media (max-width: 768px) {
         .main .block-container {
             padding-left: 0.3rem !important;
@@ -31,7 +30,6 @@ st.markdown("""
             padding-bottom: 2rem !important;
         }
         
-        /* Metric Cards Optimization */
         [data-testid="stMetric"] {
             background-color: #1e222d;
             padding: 8px 12px !important;
@@ -46,7 +44,6 @@ st.markdown("""
             font-size: 0.75rem !important;
         }
         
-        /* Columns Stacking */
         [data-testid="column"] {
             width: 100% !important;
             flex: 1 1 100% !important;
@@ -54,12 +51,10 @@ st.markdown("""
             margin-bottom: 0.3rem !important;
         }
         
-        /* Plotly Chart Full Width */
         .js-plotly-plot {
             width: 100% !important;
         }
         
-        /* Floating Chatbot Popover Position */
         [data-testid="stPopover"] {
             position: fixed !important;
             bottom: 20px !important;
@@ -80,14 +75,26 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-api_key = os.getenv('BINANCE_API_KEY')
-secret_key = os.getenv('BINANCE_SECRET_KEY')
-gemini_key = os.getenv('GEMINI_API_KEY')
+# Fetch API Keys from Secrets (Streamlit Cloud) or .env (Local)
+api_key = st.secrets.get("BINANCE_API_KEY", os.getenv('BINANCE_API_KEY'))
+secret_key = st.secrets.get("BINANCE_SECRET_KEY", os.getenv('BINANCE_SECRET_KEY'))
+gemini_key = st.secrets.get("GEMINI_API_KEY", os.getenv('GEMINI_API_KEY'))
 
+# Binance exchange connection with public data endpoint fix for US Cloud Servers
 exchange = ccxt.binance({
-    'apiKey': api_key, 'secret': secret_key,
+    'apiKey': api_key, 
+    'secret': secret_key,
     'enableRateLimit': True,
-    'options': {'defaultType': 'spot', 'adjustForTimeDifference': True, 'recvWindow': 60000}
+    'options': {
+        'defaultType': 'spot', 
+        'adjustForTimeDifference': True, 
+        'recvWindow': 60000
+    },
+    'urls': {
+        'api': {
+            'public': 'https://data-api.binance.vision/api/v3',
+        }
+    }
 })
 
 # Sidebar Controls
@@ -220,7 +227,7 @@ try:
                     st.markdown(user_input)
 
             if not gemini_key:
-                reply = "⚠️ Please set GEMINI_API_KEY in .env file."
+                reply = "⚠️ Please set GEMINI_API_KEY in Streamlit Secrets / .env file."
             else:
                 try:
                     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={gemini_key}"
@@ -263,4 +270,4 @@ except Exception as e:
     st.error(f"⚠️ Error fetching live data: {e}")
 
 time.sleep(30)
-st.rerun()
+st.rerun()run()
